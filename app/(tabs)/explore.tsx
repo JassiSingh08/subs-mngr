@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Image, Platform } from 'react-native';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { ExternalLink } from '@/components/Atoms/ExternalLink';
+import { ThemedText } from '@/components/Atoms/ThemedText';
+import ParallaxScrollView from '@/components/Molecules/ParallaxScrollView';
+import { ThemedView } from '@/components/Atoms/ThemedView';
+import { Collapsible } from '@/components/Molecules/Collapsible';
+
 
 export default function TabTwoScreen() {
   return (

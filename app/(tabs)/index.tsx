@@ -1,70 +1,123 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, Dimensions, View, TextInput } from "react-native";
+import { ThemedText } from "@/components/Atoms/ThemedText";
+import UpcomingPayments from "@/components/Organisms/UpcomingPayments";
+import RecentSubscriptions from "@/components/Organisms/RecentSubscriptions";
+import ParallaxScrollView from "@/components/Molecules/ParallaxScrollView";
+import { ThemedView } from "@/components/Atoms/ThemedView";
+import AddSubscription from "@/components/Molecules/AddSubscription";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import CreditCard from "@/components/Molecules/PaymentCard";
+import BottomSheets from "@/components/Organisms/BottomSheets";
+import { RadioButtonProps, RadioGroup } from "react-native-radio-buttons-group";
 
 export default function HomeScreen() {
+  const { width, height } = Dimensions.get("window");
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const drag = Gesture.Pan()
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+      translateY.value = event.translationY;
+      // console.log(event.translationX, event.translationY);
+    })
+    .onEnd(() => {
+      // Determine the nearest side
+      const middleX = width / 2;
+      const middleY = height / 2;
+      const finalX = translateX.value > middleX ? width - 50 : 0;
+      const finalY = translateY.value > middleY ? height - 50 : 0;
+
+      // Animate to the nearest side
+      translateX.value = withSpring(finalX);
+      translateY.value = withSpring(finalY);
+    });
+
+  const containerStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateX: translateX.value,
+        },
+        {
+          translateY: translateY.value,
+        },
+      ],
+    };
+  });
+
+  const handleSnapPress = useCallback((index: any) => {
+    bottomSheetRef.current?.snapToIndex(index);
+  }, []);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <GestureHandlerRootView>
+      <ParallaxScrollView
+        HeaderName="Home"
+        headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+        headerImage={<ThemedView style={styles.reactLogo} />}
+        handleSnapPress={handleSnapPress}
+      >
+        <ThemedView style={styles.titleContainer}>
+          <UpcomingPayments />
+        </ThemedView>
+        <ThemedView style={styles.titleContainer}>
+          <RecentSubscriptions />
+        </ThemedView>
+      </ParallaxScrollView>
+      <GestureDetector gesture={drag}>
+        <Animated.View style={[styles.addNewSub, containerStyle]}>
+          <AddSubscription />
+        </Animated.View>
+      </GestureDetector>
+      <BottomSheets
+        bottomSheetViewStyle={styles.bottomSheet}
+        ref={bottomSheetRef}
+      >
+        <CreditCard name="Scanner Singh" date="25/05" suffix="9009" />
+        <CreditCard
+          name="Scanner Singh"
+          date="25/05"
+          suffix="30"
+          bgColor="#aeaeae"
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      </BottomSheets>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   stepContainer: {
     gap: 8,
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  addNewSub: {
+    backgroundColor: "transparent",
+    position: "absolute",
+    bottom: 100,
+    right: 20,
+  },
+  reactLogo: {},
+  bottomSheet: {
+    height: "100%",
+    backgroundColor: "black",
+    paddingTop: 20,
+    alignItems: "center",
   },
 });
