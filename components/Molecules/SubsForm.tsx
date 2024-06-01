@@ -1,16 +1,22 @@
-import { View, Text, StyleSheet, TextInput } from "react-native";
-import React, { useMemo, useState } from "react";
-import { ThemedView } from "../Atoms/ThemedView";
-import { ThemedText } from "../Atoms/ThemedText";
+import { useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { RadioButtonProps, RadioGroup } from "react-native-radio-buttons-group";
+import { ThemedText } from "../Atoms/ThemedText";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { dateFormatter } from "../lib/index";
 
 export default function SubsForm({ title }: any) {
-  const [selectedId, setSelectedId] = useState<string | undefined>();
-  const [text, setText] = useState("");
-
-  const handleInputChange = (inputText: string) => {
-    setText(inputText);
-  };
+  const [selectedMethod, setSelectedMethod] = useState<string | undefined>();
+  const [amount, setAmount] = useState("");
+  const [dueDate, setDueDate] = useState(dateFormatter(new Date()));
+  const [BilingCycle, setBillingCycle] = useState("");
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const radioButtons: RadioButtonProps[] = useMemo(
     () => [
@@ -46,9 +52,13 @@ export default function SubsForm({ title }: any) {
     []
   );
 
-  console.log(selectedId);
+  const handleChangeText = (e: string) => {
+    const numericValue = e.replace(/[^0-9.]/g, "");
+    setAmount(numericValue);
+  };
+
   return (
-    <ThemedView
+    <View
       style={{
         width: "100%",
         padding: 20,
@@ -64,14 +74,13 @@ export default function SubsForm({ title }: any) {
       >
         {title}
       </ThemedText>
-      <ThemedView style={styles.form}>
+      <View style={styles.form}>
         <ThemedText style={styles.inputHeading}>AMOUNT</ThemedText>
         <TextInput
           style={styles.input}
-          onChangeText={handleInputChange}
-          value={text}
-          placeholder="Enter text here"
-          keyboardType="number-pad"
+          onChangeText={handleChangeText}
+          value={"$" + amount}
+          keyboardType="numeric"
         />
 
         {/* <ThemedText style={styles.inputHeading}>NEXT PAYMENT</ThemedText>
@@ -83,31 +92,35 @@ export default function SubsForm({ title }: any) {
         /> */}
 
         <ThemedText style={styles.inputHeading}>DUE DATE</ThemedText>
-        <TextInput
-          style={styles.input}
-          onChangeText={handleInputChange}
-          value={text}
-          placeholder="Enter text here"
+        <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
+          <TextInput style={styles.input} value={dueDate} editable={false} />
+        </TouchableOpacity>
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          onConfirm={(date) => {
+            setDatePickerVisibility(false);
+            setDueDate(dateFormatter(date));
+          }}
+          onCancel={() => setDatePickerVisibility(false)}
         />
 
         <ThemedText style={styles.inputHeading}>Billing Cycle</ThemedText>
         <TextInput
           style={styles.input}
-          onChangeText={handleInputChange}
-          value={text}
-          placeholder="Enter text here"
+          onChangeText={(e) => setBillingCycle(e)}
+          value={BilingCycle}
         />
         <ThemedText style={styles.inputHeading}>Payment Method</ThemedText>
         <RadioGroup
           radioButtons={radioButtons}
-          onPress={setSelectedId}
-          selectedId={selectedId}
+          onPress={setSelectedMethod}
+          selectedId={selectedMethod}
           layout="row"
           labelStyle={{ color: "#FFF" }}
           containerStyle={{ flexWrap: "wrap" }}
         />
-      </ThemedView>
-    </ThemedView>
+      </View>
+    </View>
   );
 }
 
